@@ -47,48 +47,46 @@ def cria_grafo():
 
 cria_grafo()
 
-grafo.mostrar_grafo()
-
 def modo_rapido(grafo, gramatica):
     array_cadeias_geradas = []
     
     while True:
+        cadeia_atual = f"{gramatica['inicial']}"
+        
+        while True:  # Loop interno para gerar uma cadeia única
+            no_atual = gramatica['inicial']
+            
+            while any(variavel in cadeia_atual for variavel in gramatica['variaveis']):
+                if no_atual not in cadeia_atual:
+                    for variavel in gramatica['variaveis']:
+                        if variavel in cadeia_atual:
+                            no_atual = variavel
+                            break
+                possiveis_escolhas = Grafo.obter_possiveis_escolhas(grafo, no_atual)
+                
+                
+                if not possiveis_escolhas:
+                    print(f"{no_atual} não possui vizinhos")
+                    break
+                
+                escolha_index = random.randint(0, len(possiveis_escolhas) - 1)
+                escolha_transicao = list(grafo.nos[no_atual].vizinhos.values())[escolha_index]
+                cadeia_atual = cadeia_atual.replace(no_atual, escolha_transicao, 1)
+                no_atual = list(grafo.nos[no_atual].vizinhos.keys())[escolha_index]
+            
+            if cadeia_atual not in array_cadeias_geradas:
+                print(f"Cadeia Gerada: {cadeia_atual}")
+                array_cadeias_geradas.append(cadeia_atual)
+                break  # Sai do loop interno quando a cadeia é única
+            else:
+                print(f"A cadeia '{cadeia_atual}' já foi gerada. Gerando outra automaticamente.")
+                cadeia_atual = f"{gramatica['inicial']}"  # Reseta para gerar uma nova cadeia
         print("1 - Sim")
         print("2 - Não")
-        escolha = input('Deseja Gerar outra? ')
-        
-        if escolha == "1":
-            cadeia_atual = f"{gramatica['inicial']}"
-            
-            while True:  # Loop interno para gerar uma cadeia única
-                no_atual = gramatica['inicial']
-                
-                while any(variavel in cadeia_atual for variavel in gramatica['variaveis']):
-                    if no_atual not in cadeia_atual:
-                        for variavel in gramatica['variaveis']:
-                            if variavel in cadeia_atual:
-                                no_atual = variavel
-                                break
-                    possiveis_escolhas = Grafo.obter_possiveis_escolhas(grafo, no_atual)
-                    
-                    
-                    if not possiveis_escolhas:
-                        print(f"{no_atual} não possui vizinhos")
-                        break
-                    
-                    escolha_index = random.randint(0, len(possiveis_escolhas) - 1)
-                    escolha_transicao = list(grafo.nos[no_atual].vizinhos.values())[escolha_index]
-                    cadeia_atual = cadeia_atual.replace(no_atual, escolha_transicao, 1)
-                    no_atual = list(grafo.nos[no_atual].vizinhos.keys())[escolha_index]
-                
-                if cadeia_atual not in array_cadeias_geradas:
-                    print(f"Cadeia Gerada: {cadeia_atual}")
-                    array_cadeias_geradas.append(cadeia_atual)
-                    break  # Sai do loop interno quando a cadeia é única
-                else:
-                    print(f"A cadeia '{cadeia_atual}' já foi gerada. Gerando outra automaticamente.")
-                    cadeia_atual = f"{gramatica['inicial']}"  # Reseta para gerar uma nova cadeia
-        else:
+        escolha = input('Deseja Gerar outra cadeia? ')
+        if escolha != '1':
+            for array in array_cadeias_geradas:
+                print(array)
             break
 def modo_lento(grafo, gramatica):
     no_atual = gramatica['inicial']
@@ -136,13 +134,18 @@ def modo_lento(grafo, gramatica):
 
 
 def gerencia(grafo,gramatica):
-    print("1 - Modo Rápido")
-    print("2 - Modo Lento")
-    escolha = input("Escolha o Modo ")
-    if escolha == "1":
-        modo_rapido(grafo,gramatica)
-    else:
-        modo_lento(grafo,gramatica)
+    while True:
+        print("------------------ Selecione o modo desejado ------------------")
+        print("1 - Modo Rápido")
+        print("2 - Modo Lento")
+        print("---------------------------------------------------------------")
+        escolha = input("Escolha o Modo (digite 'sair' para encerrar) ")
+        if escolha == "1":
+            modo_rapido(grafo,gramatica)
+        elif escolha == "2":
+            modo_lento(grafo,gramatica)
+        elif escolha.lower() == 'sair':
+            break
 gerencia(grafo,gramatica)
 
 
