@@ -64,7 +64,13 @@ def modo_rapido(grafo, gramatica):
                 no_atual = gramatica['inicial']
                 
                 while any(variavel in cadeia_atual for variavel in gramatica['variaveis']):
+                    if no_atual not in cadeia_atual:
+                        for variavel in gramatica['variaveis']:
+                            if variavel in cadeia_atual:
+                                no_atual = variavel
+                                break
                     possiveis_escolhas = Grafo.obter_possiveis_escolhas(grafo, no_atual)
+                    
                     
                     if not possiveis_escolhas:
                         print(f"{no_atual} não possui vizinhos")
