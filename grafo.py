@@ -122,25 +122,6 @@ class Grafo:
             vizinhos = ', '.join([f"{vizinho} ({valor_transicao})" for vizinho, valor_transicao in no.vizinhos.items()])
             print(f"{valor} -> {vizinhos}")
 
-    def transitar(self, origem, destino):
-        """
-        Verifica se há uma transição direta do nó de origem para o nó de destino e exibe o valor da transição, se existir.
-
-        Args:
-            origem: O valor do nó de origem.
-            destino: O valor do nó de destino.
-
-        Returns:
-            None
-        """
-        if origem in self.nos and destino in self.nos:
-            if destino in self.nos[origem].vizinhos:
-                print(f"Transição de {origem} para destino realizada com sucesso. Valor da transição: {self.nos[origem].vizinhos[destino]}")
-            else:
-                print(f"Não há uma transição direta de {origem} para {destino}")
-        else:
-            print("Nós não foram encontrados no grafo")
-
     @staticmethod
     def obter_possiveis_escolhas(grafo, no_atual):
         """
