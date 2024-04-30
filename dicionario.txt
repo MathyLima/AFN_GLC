@@ -1,6 +1,6 @@
-terminais=a,b,c,d
-variaveis=S,A,B
-inicial=S
+terminais:a,b,c,d
+variaveis:S,A,B
+inicial:S
 
 producoes
 S->aA

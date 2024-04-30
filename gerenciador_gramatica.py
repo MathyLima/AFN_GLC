@@ -60,11 +60,11 @@ class GerenciadorGramatica:
             for linha in arquivo:
                 linha = linha.strip()
                 if 'terminais' in linha:
-                    gramatica['terminais'] = [t for t in linha.split('=')[1].split(',') if t]
+                    gramatica['terminais'] = [t for t in linha.split(':')[1].split(',') if t]
                 elif 'variaveis' in linha:
-                    gramatica['variaveis'] = [var for var in linha.split('=')[1].split(',') if var != 'epsilon']
+                    gramatica['variaveis'] = [var for var in linha.split(':')[1].split(',') if var != 'epsilon']
                 elif 'inicial' in linha:
-                    gramatica['inicial'] = linha.split('=')[1].strip()
+                    gramatica['inicial'] = linha.split(':')[1].strip()
                 elif linha == 'producoes':
                     for linha_producao in arquivo:
                         linha_producao = linha_producao.strip()
