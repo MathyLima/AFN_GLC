@@ -10,9 +10,8 @@ class No:
         __init__(self, dado):
             Inicializa um objeto No com o dado fornecido e um dicionário vazio de vizinhos.
 
-        adicionar_vizinho(self, vizinho, valor_transicao):
+        adicionar_vizinho(self, vizinho, transicao):
             Adiciona um vizinho ao nó com o valor de transição fornecido.
-
     """
 
     def __init__(self, dado):
@@ -28,19 +27,19 @@ class No:
         self.dado = dado
         self.vizinhos = {}
 
-    def adicionar_vizinho(self, vizinho, valor_transicao):
+    def adicionar_vizinho(self, vizinho, transicao):
         """
         Adiciona um vizinho ao nó com o valor de transição fornecido.
 
         Args:
             vizinho: O nó vizinho a ser adicionado.
-            valor_transicao: O valor da transição para o vizinho.
+            transicao: O valor da transição para o vizinho.
 
         Returns:
             None
         """
         if vizinho not in self.vizinhos:
-            self.vizinhos[vizinho] = valor_transicao
+            self.vizinhos[vizinho] = transicao
 
 
 class Grafo:
@@ -57,18 +56,17 @@ class Grafo:
         adicionar_no(self, valor):
             Adiciona um nó com o valor fornecido ao grafo, se ainda não estiver presente.
 
-        adicionar_aresta(self, origem, destino, valor_transicao):
+        adicionar_aresta(self, origem, destino, transicao):
             Adiciona uma aresta direcionada do nó de origem para o nó de destino com o valor de transição fornecido.
 
         mostrar_grafo(self):
             Exibe uma representação visual do grafo na forma de pares de valores de nó e seus vizinhos.
 
-        transitar(self, origem, destino):
-            Verifica se há uma transição direta do nó de origem para o nó de destino e exibe o valor da transição, se existir.
+        transitar(self, origem, transicao):
+            Transita do nó de origem para o nó destino usando a transição especificada.
 
-        obter_possiveis_escolhas(grafo, no_atual):
-            Obtém uma lista de possíveis escolhas (vizinhos) a partir do nó atual em um grafo.
-
+        obter_possiveis_transicoes(grafo, no_atual):
+            Obtém uma lista de possíveis transições (vizinhos) a partir do nó atual em um grafo, incluindo os valores das transições.
     """
 
     def __init__(self):
@@ -79,6 +77,7 @@ class Grafo:
             None
         """
         self.nos = {}
+        self.variaveis = []
 
     def adicionar_no(self, valor):
         """
@@ -93,56 +92,78 @@ class Grafo:
         if valor not in self.nos:
             novo_no = No(valor)
             self.nos[valor] = novo_no
+            self.variaveis.append(valor)
 
-    def adicionar_aresta(self, origem, destino, valor_transicao):
+    def get_variaveis(self):
+        """
+        Obtém uma lista de variáveis presentes no grafo.
+
+        Returns:
+            list: Lista contendo as variáveis presentes no grafo.
+        """
+        return self.variaveis
+
+    def adicionar_aresta(self, origem, destino, transicao):
         """
         Adiciona uma aresta direcionada do nó de origem para o nó de destino com o valor de transição fornecido.
 
         Args:
             origem: O valor do nó de origem.
             destino: O valor do nó de destino.
-            valor_transicao: O valor da transição da origem para o destino.
+            transicao: O valor da transição da origem para o destino.
 
         Returns:
             None
         """
-        if origem in self.nos and destino in self.nos:
-            self.nos[origem].adicionar_vizinho(destino, valor_transicao)
-        if valor_transicao == " ":
-            self.nos[origem].adicionar_vizinho(origem, " ")
+        self.adicionar_no(origem)
+        self.adicionar_no(destino)
+        self.nos[origem].adicionar_vizinho(destino, transicao)
 
     def mostrar_grafo(self):
         """
-        Exibe uma representação visual do grafo na forma de pares de valores de nó e seus vizinhos.
+        Exibe uma representação visual do grafo na forma de pares de valores de nó e seus vizinhos, incluindo os valores das transições.
 
         Returns:
             None
         """
-        for valor, no in self.nos.items():
-            vizinhos = ', '.join([f"{vizinho} ({valor_transicao})" for vizinho, valor_transicao in no.vizinhos.items()])
-            print(f"{valor} -> {vizinhos}")
+        for no, vizinhos in self.nos.items():
+            vizinhos_formatados = ', '.join([f"{vizinho} (Transicao: {transicao})" for vizinho, transicao in vizinhos.vizinhos.items()])
+            print(f"{no} -> {vizinhos_formatados}")
 
-    @staticmethod
-    def obter_possiveis_escolhas(grafo, no_atual):
+    def transitar(self, origem, transicao):
         """
-        Obtém uma lista de possíveis escolhas (vizinhos) a partir do nó atual em um grafo.
+        Transita do nó de origem para o nó destino usando a transição especificada.
 
         Args:
-            grafo: O grafo do qual obter as escolhas.
+            origem: O valor do nó de origem.
+            transicao: O valor da transição a ser usada para transitar.
+
+        Returns:
+            destino (str): O valor do nó de destino, se encontrado. Caso contrário, retorna None.
+        """
+        vizinhos = self.nos.get(origem, {}).vizinhos
+        for destino, valor_transicao in vizinhos.items():
+            if valor_transicao == transicao:
+                return destino
+        return None
+
+    def obter_possiveis_transicoes(self, no_atual):
+        """
+        Obtém uma lista de possíveis transições (vizinhos) a partir do nó atual em um grafo, incluindo os valores das transições.
+
+        Args:
             no_atual: O valor do nó atual.
 
         Returns:
-            possiveis_escolhas (list): Uma lista de possíveis escolhas (vizinhos) a partir do nó atual.
+            possiveis_transicoes (list): Uma lista de possíveis transições (vizinhos) a partir do nó atual, incluindo os valores das transições.
         """
-        possiveis_escolhas = []
-        if no_atual in grafo.nos:
-            vizinhos = grafo.nos[no_atual].vizinhos
+        possiveis_transicoes = []
+        if no_atual in self.nos:
+            vizinhos = self.nos[no_atual].vizinhos
             if vizinhos:
-                for vizinho, valor_transicao in vizinhos.items():
-                    possiveis_escolhas.append(f"Vizinho: {vizinho}, Valor da transição: {valor_transicao}")
+                for vizinho, transicao in vizinhos.items():
+                    possiveis_transicoes.append(transicao)
         else:
             print("O nó atual não existe no grafo.")
 
-        return possiveis_escolhas
-
-        
+        return possiveis_transicoes

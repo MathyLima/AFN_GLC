@@ -17,6 +17,7 @@ gerador = Gerador_Cadeias(gramatica.grafo, gramatica.gramatica)
 # Gerencie o processo de geração de cadeias
 gerador.gerencia()
 """
+import time
 
 from gerenciador_gramatica import GerenciadorGramatica
 import random
@@ -36,54 +37,93 @@ class Gerador_Cadeias:
         """
         self.grafo = grafo
         self.gramatica = gramatica
-        
-    def modo_rapido(self):
+
+
+    def get_proxima_derivacao(self, no_atual, cadeia_atual):
+        """
+        Obtém o próximo nó a ser derivado na cadeia.
+
+        Args:
+            no_atual (str): O nó atual na cadeia.
+            cadeia_atual (str): A cadeia atual.
+
+        Returns:
+            str: O próximo nó a ser derivado.
+        """
+        no_atual = None
+        for variavel in self.grafo.get_variaveis():
+            if variavel in cadeia_atual:
+                no_atual = variavel
+                break
+
+        return no_atual
+
+    def modo_rapido(self, array_cadeias_geradas=None, cadeia_anterior=None, no_anterior=None, derivacao_escolhida=None):
         """
         Método para gerar cadeias rapidamente a partir da gramática.
 
         Retorna:
             None
         """
-        array_cadeias_geradas = []
-        
-        while True:
-            cadeia_atual = f"{self.gramatica['inicial']}"
-            
-            while True:  # Loop interno para gerar uma cadeia única
-                no_atual = self.gramatica['inicial']
-                
-                while any(variavel in cadeia_atual for variavel in self.gramatica['variaveis']):
-                    if no_atual not in cadeia_atual:
-                        for variavel in self.gramatica['variaveis']:
-                            if variavel in cadeia_atual:
-                                no_atual = variavel
-                                break
-                    possiveis_escolhas = Grafo.obter_possiveis_escolhas(self.grafo, no_atual)
-                    
-                    if not possiveis_escolhas:
-                        print(f"{no_atual} não possui vizinhos")
-                        break
-                    
-                    escolha_index = random.randint(0, len(possiveis_escolhas) - 1)
-                    escolha_transicao = list(self.grafo.nos[no_atual].vizinhos.values())[escolha_index]
-                    cadeia_atual = cadeia_atual.replace(no_atual, escolha_transicao, 1)
-                    no_atual = list(self.grafo.nos[no_atual].vizinhos.keys())[escolha_index]
-                
-                if cadeia_atual not in array_cadeias_geradas:
-                    print(f"Cadeia Gerada: {cadeia_atual}")
-                    array_cadeias_geradas.append(cadeia_atual)
-                    break  # Sai do loop interno quando a cadeia é única
-                else:
-                    print(f"A cadeia '{cadeia_atual}' já foi gerada. Gerando outra automaticamente.")
-                    cadeia_atual = f"{self.gramatica['inicial']}"  # Reseta para gerar uma nova cadeia
+        no_atual = ''
+        cadeia_atual = ''
+        if array_cadeias_geradas is None:
+            array_cadeias_geradas = []
+        if cadeia_anterior is None:
+            no_atual = self.gramatica['inicial']
+            cadeia_atual = f"{no_atual}"
+        else:
+            no_atual = no_anterior
+            cadeia_atual = cadeia_anterior
+            print(f"Cadeia anterior a que foi repetida anteriormente {cadeia_atual}, com o no {no_atual}")
+
+        while any(variavel in cadeia_atual for variavel in self.grafo.get_variaveis()):
+            if no_atual not in cadeia_atual:
+                no_atual = self.get_proxima_derivacao(no_atual, cadeia_atual)
+                if no_atual is None:
+                    break
+
+            possiveis_escolhas = self.grafo.obter_possiveis_transicoes(no_atual)
+            if derivacao_escolhida is not None:
+                possiveis_escolhas.pop(derivacao_escolhida)
+            derivacao_escolhida = None
+
+            if not possiveis_escolhas:
+                print(f"{no_atual} não possui vizinhos")
+                print("------FINALIZANDO------")
+                time.sleep(0.2)
+                break
+
+            escolha_index = random.randint(0, len(possiveis_escolhas) - 1)
+            escolha_transicao = possiveis_escolhas[escolha_index]
+            estado_escolhido = self.grafo.transitar(no_atual, escolha_transicao)
+
+            # Salvando o estado atual para a próxima iteração
+            cadeia_anterior = cadeia_atual
+            no_anterior = no_atual
+
+            # Atualizando o estado atual para a próxima iteração
+            cadeia_atual = cadeia_atual.replace(no_atual, escolha_transicao, 1)
+            no_atual = estado_escolhido
+
+        if cadeia_atual not in array_cadeias_geradas:
+            print(f"Cadeira Gerada: {cadeia_atual}")
+            array_cadeias_geradas.append(cadeia_atual)
             print("1 - Sim")
             print("2 - Não")
             escolha = input('Deseja Gerar outra cadeia? ')
-            if escolha != '1':
+            if escolha == '1':
+                # Chamada recursiva passando o estado atual para a próxima iteração
+                self.modo_rapido(array_cadeias_geradas)
+            else:
                 for array in array_cadeias_geradas:
                     print(array)
-                break
-                
+        else:
+            print(f"A cadeia '{cadeia_atual}' já foi gerada. Gerando outra automaticamente.")
+            derivacao_escolhida = escolha_index
+            # Chamada recursiva passando o estado atual para a próxima iteração
+            self.modo_rapido(array_cadeias_geradas, cadeia_anterior, no_anterior, derivacao_escolhida)
+
     def modo_lento(self):
         """
         Método para gerar cadeias lentamente a partir da gramática.
@@ -93,15 +133,12 @@ class Gerador_Cadeias:
         """
         no_atual = self.gramatica['inicial']
         cadeia_atual = f"{self.gramatica['inicial']}"
-        array_cadeias=[]
-        
+        array_cadeias = []
+
         while any(variavel in cadeia_atual for variavel in self.gramatica['variaveis']):
             if no_atual not in cadeia_atual:
-                for variavel in self.gramatica['variaveis']:
-                    if variavel in cadeia_atual:
-                        no_atual = variavel
-                        break
-            possiveis_escolhas = Grafo.obter_possiveis_escolhas(self.grafo, no_atual)
+                self.get_proxima_derivacao(no_atual, cadeia_atual)
+            possiveis_escolhas = self.grafo.obter_possiveis_transicoes(no_atual)
             
             print(f"No atual: {no_atual}")
             print(f"Cadeia atual: {cadeia_atual}")
@@ -123,10 +160,12 @@ class Gerador_Cadeias:
             
             if escolha.isdigit() and 1 <= int(escolha) <= len(possiveis_escolhas):
                 escolha_index = int(escolha) - 1
-                escolha_transicao = list(self.grafo.nos[no_atual].vizinhos.values())[escolha_index]
+
+                escolha_transicao = possiveis_escolhas[escolha_index]
+                estado_escolhido = self.grafo.transitar(no_atual, escolha_transicao)
                 print(f"Transição escolhida: {escolha_transicao}\n")
                 cadeia_atual = cadeia_atual.replace(no_atual, escolha_transicao, 1)
-                no_atual = list(self.grafo.nos[no_atual].vizinhos.keys())[escolha_index]
+                no_atual = estado_escolhido
             else:
                 print("Escolha inválida. Por favor, digite um número válido ou 'sair'.\n")
                 
